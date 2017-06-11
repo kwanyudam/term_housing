@@ -4,14 +4,15 @@ import numpy as np
 
 from dataloader import AmesLoader
 from nn import NeuralNetwork
-from pca import PCA
+from pca import myPCA
 
 IS_OVERWRITE = False
 
 TRAINING_DATA_PATH_X = 'data/Preprocessed_X_train.csv'
 TRAINING_DATA_PATH_Y = 'data/Preprocessed_Y_train.csv'
+
 CKPT_PATH = 'ckpt/nn.ckpt'
-EPOCHS = 500
+EPOCHS = 1000
 MB_SIZE = 100
 
 
@@ -20,10 +21,10 @@ def main():
 	#	- Divide Data Set for Cross Validation
 	print "Loading Data..."
 
-	loader = AmesLoader()
-	loader.loadRefinedData(TRAINING_DATA_PATH_X, TRAINING_DATA_PATH_Y)
+	loader = AmesLoader(TRAINING_DATA_PATH_X, TRAINING_DATA_PATH_Y)
+	#loader.loadRefinedData(TRAINING_DATA_PATH_X, TRAINING_DATA_PATH_Y)
 
-	# Training part -- PCA || NeuralNetwork
+	# Training part -- NeuralNetwork
 	print "Training..."
 	network_arch=[233, 128, 64, 32, 1]
 	dropout_keep_prob = 0.9
@@ -54,13 +55,25 @@ def main():
 		myNN.save(CKPT_PATH)
 		print "Network saved..."
 
+	# PCA + KNN
+
+	myPCA = PCA()
+
+	tr_x, tr_y = loader.batches()
+	tr_y = np.array(tr_y[1])
+	tr_y = tr_y.reshape((len(tr_y), 1))
+	myPCA.fit(tr_x, tr_y)
+
+	#My Own NN
+
+
+
 	# Cross Validation...
 
 	test_x, test_y = loader.testbatch()
 	test_y = np.array(test_y[1])
 	test_y = test_y.reshape((len(test_y), 1))
 	myNN.test(test_x, test_y)
-
 
 	# Testing...
 

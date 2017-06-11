@@ -8,14 +8,33 @@ from scipy.stats import skew
 from bhloader import BHLoader
 
 class AmesLoader:
-	def __init__(self):
+	def __init__(self, x_filepath, y_filepath):
+		self.tr_data_x=pd.read_csv(x_filepath)
+		self.tr_data_y=pd.read_csv(y_filepath)
+		#load Training_Data
+
+		min_max_scaler = preprocessing.MinMaxScaler()
+		np_scaled = min_max_scaler.fit_transform(self.tr_data_x)
+		self.minmax_x = pd.DataFrame(np_scaled)
+		np_scaled = min_max_scaler.fit_transform(self.tr_data_y)
+		self.minmax_y = pd.DataFrame(np_scaled)
+
+		self.mean = np.mean(self.tr_data_x, axis=1)
+		self.std = np.std(self.tr_data_x, axis=1)
+
+		self.mean_x = np.mean(self.tr_data_y)
+		self.std_y = np.std(self.tr_data_y)
+
+		self.norm_x = (self.tr_data_x  - self.mean_x) / self.std_x
+		self.norm_y = (self.tr_data_y - self.mean_y) / self.std_y
+
 		return 
 
 	def loadRawData(self, filepath):
 		tr_data=pd.read_csv(filepath)
 		var=np.genfromtxt('data/variables.csv', dtype = None, delimiter=",")
 
-		tr_data
+		#tr_data
 		# In[3]:
 
 		# to determine the type of variables
@@ -102,20 +121,21 @@ class AmesLoader:
 		# Cross validation data setting
 		X_train, X_test, y_train, y_test = train_test_split(tr_x_array, tr_y, test_size=0.4, random_state=0)
 
-	def loadRefinedData(self, x_filepath, y_filepath):
-		tr_data_x=pd.read_csv(x_filepath)
-		tr_data_y=pd.read_csv(y_filepath)
+	def getMinMaxData(self, cross_val=False, isminibatch=True, mbSize=100):
+		#self.train_x, self.test_x, self.train_y, self.test_y = train_test_split(train_x, train_y, test_size=0.4, random_state=0)
+		if isminibatch == True:
+			batches_x = []
+			batches_y = []
+			for i in range(0, len(self.minmax_x[0]), mbSize):
+				batches_x.append(self.minmax_x[i:i+mbSize])
+				batches_y.append(self.minmax_y[i:i+mbSize])
 
-		min_max_scaler = preprocessing.MinMaxScaler()
-		np_scaled = min_max_scaler.fit_transform(tr_data_x)
-		train_x = pd.DataFrame(np_scaled)
+			return batches_x, batches_y
+		else:
+			return self.minmax_x, self.minmax_y
 
-		np_scaled = min_max_scaler.fit_transform(tr_data_y)
-		train_y = pd.DataFrame(np_scaled)
-
-		self.train_x, self.test_x, self.train_y, self.test_y = train_test_split(train_x, train_y, test_size=0.4, random_state=0)
-
-		return self.train_x, self.test_x, self.train_y, self.test_y
+	def getNormalizedData(self, cross_val=False):
+		return self.norm_x, self.norm_y
 
 	def preprocessData(self):
 		#Normalize
@@ -126,6 +146,9 @@ class AmesLoader:
 
 	def minibatches(self, idx, mb_size):
 		return self.train_x[idx:idx+mb_size], self.train_y[idx:idx+mb_size]
+
+	def batches(self):
+		return self.train_x, self.train_y
 
 	def testbatch(self):
 		return self.test_x, self.test_y
