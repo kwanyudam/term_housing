@@ -4,7 +4,7 @@ import numpy as np
 
 from dataloader import AmesLoader
 from nn import NeuralNetwork
-from pca import myPCA
+from pcaknn import PCAKNN
 
 IS_OVERWRITE = False
 
@@ -12,20 +12,28 @@ TRAINING_DATA_PATH_X = 'data/Preprocessed_X_train.csv'
 TRAINING_DATA_PATH_Y = 'data/Preprocessed_Y_train.csv'
 
 CKPT_PATH = 'ckpt/nn.ckpt'
-EPOCHS = 1000
+EPOCHS = 100
+#EPOCHS 1000 Recommended...
 MB_SIZE = 100
 
 
 def main():
-	#Load Ames Housing Data
-	#	- Divide Data Set for Cross Validation
+	# Load Ames Housing Data
+	#	- Load Data (from Raw or Refined)
+	#	- MinMaxScaling for NeuralNetwork
+	#	- Normal Distribution for PCA
+	#	!!! Cross Validation
 	print "Loading Data..."
 
 	loader = AmesLoader(TRAINING_DATA_PATH_X, TRAINING_DATA_PATH_Y)
-	#loader.loadRefinedData(TRAINING_DATA_PATH_X, TRAINING_DATA_PATH_Y)
 
-	# Training part -- NeuralNetwork
-	print "Training..."
+	# Training part -- NeuralNetwork with TensorFlow
+	#	- Settings for NeuralNetwork
+	#	- check NeuralNetwork CheckPoint
+	#		!!!Need Fixing...(Date, Settings should be updated)
+	#	- train Neural Network
+	print "Training NN with Tensorflow..."
+
 	network_arch=[233, 128, 64, 32, 1]
 	dropout_keep_prob = 0.9
 	learning_rate = 0.1
@@ -42,41 +50,28 @@ def main():
 	else:
 		print "Training Network..."
 		curr_cost=0
+		batches_x, batches_y = loader.getMinMaxData(isminibatch=True,mbSize=MB_SIZE)
 		for i in range(0, EPOCHS):
 			print "ITER : ", i ,", COST : ", curr_cost
-			for j in range(0, loader.getSize(), MB_SIZE):
-				tr_x, tr_y = loader.minibatches(j, MB_SIZE)
-				#tr_y = np.ndarray(shape=(MB_SIZE, 1), dtype=float, buffer = tr_y['0'])
-				tr_y = np.array(tr_y[1])
-				tr_y = tr_y.reshape((len(tr_y), 1))
+			for tr_x, tr_y in zip(batches_x, batches_y):
 				curr_cost = myNN.train(tr_x, tr_y)
 
 		print "Training Complete!"
 		myNN.save(CKPT_PATH)
 		print "Network saved..."
 
-	# PCA + KNN
+	# Training part -- PCA + KNN
 
-	myPCA = PCA()
+	myKNN = PCAKNN()
 
-	tr_x, tr_y = loader.batches()
-	tr_y = np.array(tr_y[1])
-	tr_y = tr_y.reshape((len(tr_y), 1))
-	myPCA.fit(tr_x, tr_y)
+	batches_x, batches_y = loader.getNormalizedData()
+	myKNN.fit(batches_x)
 
 	#My Own NN
 
 
 
-	# Cross Validation...
-
-	test_x, test_y = loader.testbatch()
-	test_y = np.array(test_y[1])
-	test_y = test_y.reshape((len(test_y), 1))
-	myNN.test(test_x, test_y)
-
-	# Testing...
-
+	# Testing With Cross Validation...
 
 
 if __name__=="__main__":

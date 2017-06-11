@@ -13,20 +13,29 @@ class AmesLoader:
 		self.tr_data_y=pd.read_csv(y_filepath)
 		#load Training_Data
 
+		#create MinMax Scaled Data
 		min_max_scaler = preprocessing.MinMaxScaler()
 		np_scaled = min_max_scaler.fit_transform(self.tr_data_x)
 		self.minmax_x = pd.DataFrame(np_scaled)
 		np_scaled = min_max_scaler.fit_transform(self.tr_data_y)
 		self.minmax_y = pd.DataFrame(np_scaled)
 
-		self.mean = np.mean(self.tr_data_x, axis=1)
-		self.std = np.std(self.tr_data_x, axis=1)
+		self.minmax_y = np.array(self.minmax_y[1])
+		self.minmax_y = self.minmax_y.reshape((len(self.minmax_y), 1))
 
-		self.mean_x = np.mean(self.tr_data_y)
+
+		#Create Normal Distributed Data
+		self.mean_x = np.mean(self.tr_data_x, axis=0)
+		self.std_x = np.std(self.tr_data_x, axis=0)
+
+		self.mean_y = np.mean(self.tr_data_y)
 		self.std_y = np.std(self.tr_data_y)
 
 		self.norm_x = (self.tr_data_x  - self.mean_x) / self.std_x
 		self.norm_y = (self.tr_data_y - self.mean_y) / self.std_y
+
+		self.norm_y = np.array(self.norm_y['0'])
+		self.norm_y = self.norm_y.reshape((len(self.norm_y), 1))
 
 		return 
 
@@ -122,7 +131,6 @@ class AmesLoader:
 		X_train, X_test, y_train, y_test = train_test_split(tr_x_array, tr_y, test_size=0.4, random_state=0)
 
 	def getMinMaxData(self, cross_val=False, isminibatch=True, mbSize=100):
-		#self.train_x, self.test_x, self.train_y, self.test_y = train_test_split(train_x, train_y, test_size=0.4, random_state=0)
 		if isminibatch == True:
 			batches_x = []
 			batches_y = []
@@ -140,15 +148,3 @@ class AmesLoader:
 	def preprocessData(self):
 		#Normalize
 		pass
-		
-	def getSize(self):
-		return len(self.train_x.index)
-
-	def minibatches(self, idx, mb_size):
-		return self.train_x[idx:idx+mb_size], self.train_y[idx:idx+mb_size]
-
-	def batches(self):
-		return self.train_x, self.train_y
-
-	def testbatch(self):
-		return self.test_x, self.test_y
