@@ -25,10 +25,23 @@ def main():
 	#	- Load Data (from Raw or Refined)
 	#	- MinMaxScaling for NeuralNetwork
 	#	- Normal Distribution for PCA
-	#	!!! Cross Validation
 	print "Loading Data..."
 
 	loader = AmesLoader(DATA_PATH)
+
+	network_arch=[235, 128, 64, 32, 1]
+	dropout_keep_prob = 0.9
+	learning_rate = 0.1
+	rectifier = 'relu'
+
+	myNN = NeuralNetwork(network_arch, 
+		drop_keep=dropout_keep_prob,
+		learning_rate=learning_rate, 
+		rectifier=rectifier)
+
+	myOwnNN = CustomNeuralNetwork(network_arch,
+		learning_rate = learning_rate,
+		rectifier=rectifier)
 
 	mlp_err_rate = []
 	knn_err_rate = []
@@ -40,15 +53,6 @@ def main():
 		#		!!!Need Fixing...(Date, Settings should be updated)
 		#	- train Neural Network
 		print "Training NN with Tensorflow..."
-
-		network_arch=[235, 128, 64, 32, 1]
-		dropout_keep_prob = 0.9
-		learning_rate = 0.1
-		rectifier = 'relu'
-		myNN = NeuralNetwork(network_arch, 
-			drop_keep=dropout_keep_prob,
-			learning_rate=learning_rate, 
-			rectifier=rectifier)
 
 		batches_x, batches_y, test_x, test_y = loader.getMinMaxData(isminibatch=True,mbSize=MB_SIZE)
 
@@ -90,9 +94,15 @@ def main():
 		knn_err_rate.append(np.mean(np.absolute(result_y-test_y) / test_y))
 		print "Error Rate : ", knn_err_rate[-1]*100.0, " %"
 
+		print "\n\n"
+
 		#My Own NN
 
+
 		#batches_x, batches_y, test_x, test_y = loader.getMinMaxData(isminibatch=True,mbSize=MB_SIZE)
+
+	print "Neural Network Error Rate : ", np.mean(mlp_err_rate) * 100.0 , " %"
+	print "PCA + KNN Error Rate : ", np.mean(knn_err_rate) * 100.0, " %"
 
 
 if __name__=="__main__":

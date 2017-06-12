@@ -22,7 +22,7 @@ class PCAKNN:
 		newY = self.pca.transform(Y)
 
 		train_result=[]
-		for y, y_ in zip(newY, resultY):
+		for y in newY:
 
 			distList = []
 			for res, x in zip(self.result, self.newX):
@@ -40,6 +40,5 @@ class PCAKNN:
 			train_result.append(meanY)
 
 		train_result = np.array(train_result)
-		#print train_result, resultY
 
-		return resultY
+		return train_result
