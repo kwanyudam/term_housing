@@ -7,17 +7,23 @@ from sklearn.model_selection import train_test_split
 from scipy.stats import skew
 from bhloader import BHLoader
 
+import random
+
 class AmesLoader:
 	def __init__(self, x_filepath, y_filepath):
-		tr_x_array = pd.read_csv(x_filepath)
-		tr_y_array = pd.read_csv(y_filepath)
-		self.tr_data_x, self.test_data_x, self.tr_data_y, self.test_data_y = train_test_split(tr_x_array, tr_y, test_size=0.4, random_state=0)
+		self.dataX = pd.read_csv(x_filepath)
+		self.dataY = pd.read_csv(y_filepath)
+
+		self.dataX.drop(self.dataX.columns[0], axis=1, inplace=True)
+		self.dataY.drop(self.dataY.columns[[0]], axis=1, inplace=True)
+
+		#self.tr_data_x, self.test_data_x, self.tr_data_y, self.test_data_y = train_test_split(tr_x_array, tr_y, test_size=0.4, random_state=0)
 		#self.tr_data_x=pd.read_csv(x_filepath)
 		#self.tr_data_y=pd.read_csv(y_filepath)
 		#load Training_Data
 
 		#create MinMax Scaled Data
-		self.min_max_scaler_x = preprocessing.MinMaxScaler()
+		'''self.min_max_scaler_x = preprocessing.MinMaxScaler()
 		self.min_max_scaler_y = preprocessing.MinMaxScaler()
 		self.min_max_scaler_x.fit(self.tr_data_x)
 		self.min_max_scaler_y.fit(self.tr_data_y)
@@ -27,10 +33,10 @@ class AmesLoader:
 		self.minmax_y = self.minmax_y.reshape((len(self.minmax_y), 1))
 
 		self.minmax_test_x = self.min_max_scaler_x.transform(self.test_data_x)
-		self.minmax_test_y = self.min_max_scaler_y.transform(self.test_data_y)
+		self.minmax_test_y = self.min_max_scaler_y.transform(self.test_data_y)'''
 
 		#Create Normal Distributed Data
-		self.mean_x = np.mean(self.tr_data_x, axis=0)
+		'''self.mean_x = np.mean(self.tr_data_x, axis=0)
 		self.std_x = np.std(self.tr_data_x, axis=0)
 
 		self.mean_y = np.mean(self.tr_data_y)
@@ -43,7 +49,7 @@ class AmesLoader:
 		self.norm_y = self.norm_y.reshape((len(self.norm_y), 1))
 
 		self.norm_test_x = (self.test_data_x - self.mean_x) / self.std_x
-		self.norm_test_y = (self.test_data_y - self.mean_y) / self.std_y
+		self.norm_test_y = (self.test_data_y - self.mean_y) / self.std_y'''
 
 		return 
 
@@ -138,23 +144,51 @@ class AmesLoader:
 		# Cross validation data setting
 		X_train, X_test, y_train, y_test = train_test_split(tr_x_array, tr_y, test_size=0.4, random_state=0)
 
-	def getMinMaxData(self, cross_val=False, isminibatch=True, mbSize=100):
+	def getMinMaxData(self, isminibatch=True, mbSize=100):
+		trainX, testX, trainY, testY = train_test_split(self.dataX, self.dataY, test_size=0.2, random_state=random.randint(0, 50))
+
+		mm_scaler_x = preprocessing.MinMaxScaler()
+		mm_scaler_y = preprocessing.MinMaxScaler()
+
+		mm_scaler_x.fit(trainX)
+		mm_scaler_y.fit(trainY)
+
+		trainX = mm_scaler_x.transform(trainX)
+		testX = mm_scaler_x.transform(testX)
+		trainY = mm_scaler_y.transform(trainY)
+		testY = mm_scaler_y.transform(testY)
+
 		if isminibatch == True:
 			batches_x = []
 			batches_y = []
-			for i in range(0, len(self.minmax_x[0]), mbSize):
-				batches_x.append(self.minmax_x[i:i+mbSize])
-				batches_y.append(self.minmax_y[i:i+mbSize])
+			for i in range(0, len(trainX[0]), mbSize):
+				batches_x.append(trainX[i:i+mbSize])
+				batches_y.append(trainY[i:i+mbSize])
 
-			return batches_x, batches_y
+			return batches_x, batches_y, testX, testY
 		else:
-			return self.minmax_x, self.minmax_y
-
-	def getMinMaxTest(self):
-		return self.minmax_test_x, self.minmax_test_y
+			return trainX, trainY, testX, testY
 
 	def getNormalizedData(self, cross_val=False):
-		return self.norm_x, self.norm_y
+		trainX, testX, trainY, testY = train_test_split(self.dataX, self.dataY, test_size=0.2, random_state=random.randint(0, 50))
 
-	def getNormalizedTest(self):
-		return self.norm_test_x, self.norm_test_y
+		trainX = np.array(trainX)
+		trainY = np.array(trainY)
+		testX = np.array(testX)
+		testY = np.array(testY)
+
+		meanX = np.mean(trainX, axis=0)
+		stdX = np.std(trainX, axis=0)
+
+		#meanY = np.mean(trainY)
+		#stdY = np.std(trainY)
+
+		eps = 0.0001
+
+		trainX = (trainX - meanX) / (stdX+eps)
+		#trainY = (trainY - meanY) / (stdY+eps)
+
+		testX = (testX - meanX) / (stdX+eps)
+		#testY = (testY - meanY) / (stdY+eps)
+
+		return trainX, trainY, testX, testY
