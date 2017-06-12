@@ -53,6 +53,12 @@ class AmesLoader:
 		dataX = np.array(df.drop('SalePrice', axis=1), dtype=float)
 		dataY = np.array(df['SalePrice'], dtype=float)
 
+
+		colnames= df.columns.values
+
+		print colnames[15]
+		print colnames[16]
+
 		return dataX, dataY
 
 	def getMinMaxData(self, isminibatch=True, mbSize=100):

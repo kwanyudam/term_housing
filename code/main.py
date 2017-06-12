@@ -4,6 +4,7 @@ import numpy as np
 
 from dataloader import AmesLoader
 from nn import NeuralNetwork
+from customnn import CustomNeuralNetwork
 from pcaknn import PCAKNN
 
 IS_OVERWRITE = False
@@ -97,6 +98,7 @@ def main():
 		print "\n\n"
 
 		#My Own NN
+
 
 
 		#batches_x, batches_y, test_x, test_y = loader.getMinMaxData(isminibatch=True,mbSize=MB_SIZE)
