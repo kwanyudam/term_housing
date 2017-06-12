@@ -18,7 +18,7 @@ class PCAKNN:
 
 		return
 
-	def test(self, Y, resultY, k=5):
+	def test(self, Y, k=5):
 		newY = self.pca.transform(Y)
 
 		train_result=[]
@@ -41,6 +41,5 @@ class PCAKNN:
 
 		train_result = np.array(train_result)
 		#print train_result, resultY
-		print "Error Rate : ", np.mean(np.absolute(train_result-resultY) / resultY) * 100.0, " %"
 
-		#return resultY
+		return resultY

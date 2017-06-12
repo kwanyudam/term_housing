@@ -30,62 +30,69 @@ def main():
 
 	loader = AmesLoader(DATA_PATH)
 
-	#for i in range(K_FOLD_SET_SIZE):
-	# Training part -- NeuralNetwork with TensorFlow
-	#	- Settings for NeuralNetwork
-	#	- check NeuralNetwork CheckPoint
-	#		!!!Need Fixing...(Date, Settings should be updated)
-	#	- train Neural Network
-	print "Training NN with Tensorflow..."
+	mlp_err_rate = []
+	knn_err_rate = []
+	for i in range(K_FOLD_SET_SIZE):
+		print i, "th Set of K-Fold Cross Validation\n\n"
+		# Training part -- NeuralNetwork with TensorFlow
+		#	- Settings for NeuralNetwork
+		#	- check NeuralNetwork CheckPoint
+		#		!!!Need Fixing...(Date, Settings should be updated)
+		#	- train Neural Network
+		print "Training NN with Tensorflow..."
 
-	network_arch=[235, 128, 64, 32, 1]
-	dropout_keep_prob = 0.9
-	learning_rate = 0.1
-	rectifier = 'relu'
-	myNN = NeuralNetwork(network_arch, 
-		drop_keep=dropout_keep_prob,
-		learning_rate=learning_rate, 
-		rectifier=rectifier)
+		network_arch=[235, 128, 64, 32, 1]
+		dropout_keep_prob = 0.9
+		learning_rate = 0.1
+		rectifier = 'relu'
+		myNN = NeuralNetwork(network_arch, 
+			drop_keep=dropout_keep_prob,
+			learning_rate=learning_rate, 
+			rectifier=rectifier)
 
-	batches_x, batches_y, test_x, test_y = loader.getMinMaxData(isminibatch=True,mbSize=MB_SIZE)
+		batches_x, batches_y, test_x, test_y = loader.getMinMaxData(isminibatch=True,mbSize=MB_SIZE)
 
-	if(not IS_OVERWRITE) and os.path.isfile(CKPT_PATH):
-		print "CHECK POINT EXISTS!!",
-		myNN.load(CKPT_PATH)
-		print "----Loaded : ", CKPT_PATH
-	else:
-		print "Training Network..."
-		curr_cost=0
-		for i in range(0, EPOCHS):
-			print "ITER : ", i ,", COST : ", curr_cost
-			for tr_x, tr_y in zip(batches_x, batches_y):
-				curr_cost = myNN.train(tr_x, tr_y.reshape((len(tr_y), 1)))
+		if(not IS_OVERWRITE) and os.path.isfile(CKPT_PATH):
+			print "CHECK POINT EXISTS!!",
+			myNN.load(CKPT_PATH)
+			print "----Loaded : ", CKPT_PATH
+		else:
+			print "Training Network..."
+			curr_cost=0
+			for i in range(0, EPOCHS):
+				print "ITER : ", i ,", COST : ", curr_cost
+				for tr_x, tr_y in zip(batches_x, batches_y):
+					curr_cost = myNN.train(tr_x, tr_y.reshape((len(tr_y), 1)))
 
-		print "Training Complete!"
-		myNN.save(CKPT_PATH)
-		print "Network saved..."
+			print "Training Complete!"
+			myNN.save(CKPT_PATH)
+			print "Network saved..."
 
-	# Testing part -- NeuralNetwork with TensorFlow
-	print "Testing NN with Tensorflow..."
-	result_y = myNN.test(test_x)
-	result_y = loader.restoreMinMaxSalePrice(result_y)
-	print "Error Rate : ", np.mean(np.absolute(result_y-test_y)/test_y) * 100.0, " %"
+		# Testing part -- NeuralNetwork with TensorFlow
+		print "Testing NN with Tensorflow..."
+		result_y = myNN.test(test_x)
+		result_y = loader.restoreMinMaxSalePrice(result_y)
+		mlp_err_rate.append(np.mean(np.absolute(result_y-test_y)/test_y))
+		print "Error Rate : ", mlp_err_rate[-1]  * 100.0, " %"
 
-	# Training part -- PCA + KNN
-	print "Training PCA + KNN"
-	myKNN = PCAKNN()
 
-	train_x, train_y, test_x, test_y = loader.getNormalizedData()
+		# Training part -- PCA + KNN
+		print "Training PCA + KNN"
+		myKNN = PCAKNN()
 
-	myKNN.fit(train_x, train_y)
+		train_x, train_y, test_x, test_y = loader.getNormalizedData()
 
-	# Testing part -- PCA + KNN
-	print "Testing PCA + KNN"
-	myKNN.test(test_x, test_y)
+		myKNN.fit(train_x, train_y)
 
-	#My Own NN
+		# Testing part -- PCA + KNN
+		print "Testing PCA + KNN"
+		result_y = myKNN.test(test_x)
+		knn_err_rate.append(np.mean(np.absolute(result_y-test_y) / test_y))
+		print "Error Rate : ", knn_err_rate[-1]*100.0, " %"
 
-	#batches_x, batches_y, test_x, test_y = loader.getMinMaxData(isminibatch=True,mbSize=MB_SIZE)
+		#My Own NN
+
+		#batches_x, batches_y, test_x, test_y = loader.getMinMaxData(isminibatch=True,mbSize=MB_SIZE)
 
 
 if __name__=="__main__":
