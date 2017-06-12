@@ -39,7 +39,3 @@ class PCAKNN:
 			print meanY
 
 		return resultY
-
-		
-
-		

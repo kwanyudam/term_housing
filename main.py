@@ -71,8 +71,6 @@ def main():
 
 	#My Own NN
 
-
-
 	# Testing With Cross Validation...
 
 

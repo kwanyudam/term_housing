@@ -17,12 +17,17 @@ class AmesLoader:
 		#load Training_Data
 
 		#create MinMax Scaled Data
-		self.min_max_scaler = preprocessing.MinMaxScaler()
-		self.minmax_x = self.min_max_scaler.fit_transform(self.tr_data_x)
-		self.minmax_y = self.min_max_scaler.fit_transform(self.tr_data_y)
+		self.min_max_scaler_x = preprocessing.MinMaxScaler()
+		self.min_max_scaler_y = preprocessing.MinMaxScaler()
+		self.min_max_scaler_x.fit(self.tr_data_x)
+		self.min_max_scaler_y.fit(self.tr_data_y)
+		self.minmax_x = self.min_max_scaler_x.transform(self.tr_data_x)
+		self.minmax_y = self.min_max_scaler_y.transform(self.tr_data_y)
 		self.minmax_y = np.array(self.minmax_y[1])
 		self.minmax_y = self.minmax_y.reshape((len(self.minmax_y), 1))
 
+		self.minmax_test_x = self.min_max_scaler_x.transform(self.test_data_x)
+		self.minmax_test_y = self.min_max_scaler_y.transform(self.test_data_y)
 
 		#Create Normal Distributed Data
 		self.mean_x = np.mean(self.tr_data_x, axis=0)
@@ -36,6 +41,9 @@ class AmesLoader:
 
 		self.norm_y = np.array(self.norm_y['0'])
 		self.norm_y = self.norm_y.reshape((len(self.norm_y), 1))
+
+		self.norm_test_x = (self.test_data_x - self.mean_x) / self.std_x
+		self.norm_test_y = (self.test_data_y - self.mean_y) / self.std_y
 
 		return 
 
