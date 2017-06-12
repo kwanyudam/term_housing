@@ -65,7 +65,9 @@ def main():
 	myKNN = PCAKNN()
 
 	batches_x, batches_y = loader.getNormalizedData()
-	myKNN.fit(batches_x)
+	myKNN.fit(batches_x, batches_y)
+
+	myKNN.test(batches_x)
 
 	#My Own NN
 

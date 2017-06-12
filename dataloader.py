@@ -9,17 +9,17 @@ from bhloader import BHLoader
 
 class AmesLoader:
 	def __init__(self, x_filepath, y_filepath):
-		self.tr_data_x=pd.read_csv(x_filepath)
-		self.tr_data_y=pd.read_csv(y_filepath)
+		tr_x_array = pd.read_csv(x_filepath)
+		tr_y_array = pd.read_csv(y_filepath)
+		self.tr_data_x, self.test_data_x, self.tr_data_y, self.test_data_y = train_test_split(tr_x_array, tr_y, test_size=0.4, random_state=0)
+		#self.tr_data_x=pd.read_csv(x_filepath)
+		#self.tr_data_y=pd.read_csv(y_filepath)
 		#load Training_Data
 
 		#create MinMax Scaled Data
-		min_max_scaler = preprocessing.MinMaxScaler()
-		np_scaled = min_max_scaler.fit_transform(self.tr_data_x)
-		self.minmax_x = pd.DataFrame(np_scaled)
-		np_scaled = min_max_scaler.fit_transform(self.tr_data_y)
-		self.minmax_y = pd.DataFrame(np_scaled)
-
+		self.min_max_scaler = preprocessing.MinMaxScaler()
+		self.minmax_x = self.min_max_scaler.fit_transform(self.tr_data_x)
+		self.minmax_y = self.min_max_scaler.fit_transform(self.tr_data_y)
 		self.minmax_y = np.array(self.minmax_y[1])
 		self.minmax_y = self.minmax_y.reshape((len(self.minmax_y), 1))
 
@@ -142,9 +142,11 @@ class AmesLoader:
 		else:
 			return self.minmax_x, self.minmax_y
 
+	def getMinMaxTest(self):
+		return self.minmax_test_x, self.minmax_test_y
+
 	def getNormalizedData(self, cross_val=False):
 		return self.norm_x, self.norm_y
 
-	def preprocessData(self):
-		#Normalize
-		pass
+	def getNormalizedTest(self):
+		return self.norm_test_x, self.norm_test_y
