@@ -3,7 +3,7 @@ from sklearn.decomposition import PCA
 from operator import itemgetter
 
 class PCAKNN:
-	def __init__(self, n_comp=100):
+	def __init__(self, n_comp=10):
 		self.pca = PCA(n_comp)
 		return
 

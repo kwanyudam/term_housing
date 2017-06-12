@@ -50,13 +50,16 @@ class AmesLoader:
 		for v in var_types['nominal']:
 			df.drop(v, axis=1, inplace=True)
 
-		dataX = np.array(df.drop('SalePrice', axis=1))
-		dataY = np.array(df['SalePrice'])
+		dataX = np.array(df.drop('SalePrice', axis=1), dtype=float)
+		dataY = np.array(df['SalePrice'], dtype=float)
 
 		return dataX, dataY
 
 	def getMinMaxData(self, isminibatch=True, mbSize=100):
 		trainX, testX, trainY, testY = train_test_split(self.dataX, self.dataY, test_size=0.2, random_state=random.randint(0, 50))
+
+		trainY = trainY.reshape((len(trainY), 1))
+		testY = testY.reshape((len(testY), 1))
 
 		self.mm_scaler_x = preprocessing.MinMaxScaler()
 		self.mm_scaler_y = preprocessing.MinMaxScaler()
@@ -64,10 +67,14 @@ class AmesLoader:
 		self.mm_scaler_x.fit(trainX)
 		self.mm_scaler_y.fit(trainY)
 
+
 		trainX = self.mm_scaler_x.transform(trainX)
 		testX = self.mm_scaler_x.transform(testX)
 		trainY = self.mm_scaler_y.transform(trainY)
-		testY = self.mm_scaler_y.transform(testY)
+
+		testX = np.clip(testX, 0, 1)
+
+				
 
 		if isminibatch == True:
 			batches_x = []
@@ -83,7 +90,10 @@ class AmesLoader:
 	def restoreMinMaxSalePrice(self, price):
 		return self.mm_scaler_y.inverse_transform(price)
 
-	def getNormalizedData(self, cross_val=False):
+	def restoreNormalizedPrice(self, price):
+		return (price * (self.stdY+self.eps))+self.meanY
+
+	def getNormalizedData(self, cross_val=False, isminibatch=False, mbSize=100, normalizeY=False):
 		trainX, testX, trainY, testY = train_test_split(self.dataX, self.dataY, test_size=0.2, random_state=random.randint(0, 50))
 
 		trainX = np.array(trainX)
@@ -91,18 +101,29 @@ class AmesLoader:
 		testX = np.array(testX)
 		testY = np.array(testY)
 
-		meanX = np.mean(trainX, axis=0)
-		stdX = np.std(trainX, axis=0)
+		self.meanX = np.mean(trainX, axis=0)
+		self.stdX = np.std(trainX, axis=0)
 
-		#meanY = np.mean(trainY)
-		#stdY = np.std(trainY)
+		self.eps = 0.0001
 
-		eps = 0.0001
+		trainX = (trainX - self.meanX) / (self.stdX+self.eps)
+		
 
-		trainX = (trainX - meanX) / (stdX+eps)
-		#trainY = (trainY - meanY) / (stdY+eps)
+		testX = (testX - self.meanX) / (self.stdX+self.eps)
 
-		testX = (testX - meanX) / (stdX+eps)
-		#testY = (testY - meanY) / (stdY+eps)
+		if normalizeY:
+			self.meanY = np.mean(trainY)
+			self.stdY = np.std(trainY)
+			trainY = (trainY - self.meanY) / (self.stdY+self.eps)
+			testY = (testY - self.meanY) / (self.stdY+self.eps)
+
+		if isminibatch == True:
+			batches_x = []
+			batches_y = []
+			for i in range(0, len(trainX[0]), mbSize):
+				batches_x.append(trainX[i:i+mbSize])
+				batches_y.append(trainY[i:i+mbSize])
+
+			return batches_x, batches_y, testX, testY
 
 		return trainX, trainY, testX, testY
