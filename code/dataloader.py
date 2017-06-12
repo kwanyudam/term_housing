@@ -58,16 +58,16 @@ class AmesLoader:
 	def getMinMaxData(self, isminibatch=True, mbSize=100):
 		trainX, testX, trainY, testY = train_test_split(self.dataX, self.dataY, test_size=0.2, random_state=random.randint(0, 50))
 
-		mm_scaler_x = preprocessing.MinMaxScaler()
-		mm_scaler_y = preprocessing.MinMaxScaler()
+		self.mm_scaler_x = preprocessing.MinMaxScaler()
+		self.mm_scaler_y = preprocessing.MinMaxScaler()
 
-		mm_scaler_x.fit(trainX)
-		mm_scaler_y.fit(trainY)
+		self.mm_scaler_x.fit(trainX)
+		self.mm_scaler_y.fit(trainY)
 
-		trainX = mm_scaler_x.transform(trainX)
-		testX = mm_scaler_x.transform(testX)
-		trainY = mm_scaler_y.transform(trainY)
-		testY = mm_scaler_y.transform(testY)
+		trainX = self.mm_scaler_x.transform(trainX)
+		testX = self.mm_scaler_x.transform(testX)
+		trainY = self.mm_scaler_y.transform(trainY)
+		testY = self.mm_scaler_y.transform(testY)
 
 		if isminibatch == True:
 			batches_x = []
@@ -79,6 +79,9 @@ class AmesLoader:
 			return batches_x, batches_y, testX, testY
 		else:
 			return trainX, trainY, testX, testY
+
+	def restoreMinMaxSalePrice(self, price):
+		return self.mm_scaler_y.inverse_transform(price)
 
 	def getNormalizedData(self, cross_val=False):
 		trainX, testX, trainY, testY = train_test_split(self.dataX, self.dataY, test_size=0.2, random_state=random.randint(0, 50))

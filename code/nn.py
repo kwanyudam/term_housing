@@ -66,15 +66,13 @@ class NeuralNetwork:
 		#print "Cost : ", cost
 		return cost
 
-	def test(self, test_x, test_y):
+	def test(self, test_x):
 		train_result = self.sess.run((self.z),
 			feed_dict={
 			self.x:test_x
 			})
 		#print "NN Sales Price Estimation : ", train_result
 		#print "Actual Price : ", test_y
-		print test_y
-		print "Error Rate : ", np.mean(np.absolute(train_result-test_y)/test_y) * 100.0, " %"
 
 		return train_result
 

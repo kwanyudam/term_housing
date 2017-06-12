@@ -6,7 +6,7 @@ from dataloader import AmesLoader
 from nn import NeuralNetwork
 from pcaknn import PCAKNN
 
-IS_OVERWRITE = False
+IS_OVERWRITE = True
 
 #TRAINING_DATA_PATH_X = 'data/Preprocessed_X_train.csv'
 #TRAINING_DATA_PATH_Y = 'data/Preprocessed_Y_train.csv'
@@ -14,7 +14,7 @@ IS_OVERWRITE = False
 DATA_PATH = '../data/ml_project_train.csv'
 
 CKPT_PATH = '../ckpt/nn.ckpt'
-EPOCHS = 500
+EPOCHS = 1000
 #EPOCHS 1000 Recommended...
 MB_SIZE = 100
 
@@ -67,8 +67,9 @@ def main():
 
 	# Testing part -- NeuralNetwork with TensorFlow
 	print "Testing NN with Tensorflow..."
-	myNN.test(test_x, test_y)		
-
+	nnresult = myNN.test(test_x)
+	#test_y = loader.restoreMinMaxSalePrice(test_y)
+	#print "Error Rate : ", np.mean(np.absolute(loader.restoreMinMaxSalePrice(nnresult)-test_y)/test_y) * 100.0, " %"
 	# Training part -- PCA + KNN
 	print "Training PCA + KNN"
 	myKNN = PCAKNN()
