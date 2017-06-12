@@ -31,10 +31,8 @@ class AmesLoader:
 			if c == 'SalePrice':
 				pass
 			elif c in var_types['continuous']:
-				# df[c].fillna(0, inplace=True)
 				df[c].fillna(df[c].median(), inplace=True)
 			elif c in var_types['discrete']:
-				# df[c].fillna(0, inplace=True)
 				df[c].fillna(df[c].median(), inplace=True)
 			elif c in var_types['nominal']:
 				df[c].fillna('None', inplace=True)
@@ -55,9 +53,6 @@ class AmesLoader:
 
 
 		colnames= df.columns.values
-
-		print colnames[15]
-		print colnames[16]
 
 		return dataX, dataY
 

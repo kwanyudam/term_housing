@@ -15,7 +15,7 @@ IS_OVERWRITE = False
 DATA_PATH = '../data/ml_project_train.csv'
 
 CKPT_PATH = '../ckpt/nn.ckpt'
-EPOCHS = 1000
+EPOCHS = 500
 #EPOCHS 1000 Recommended...
 MB_SIZE = 100
 
@@ -46,8 +46,9 @@ def main():
 
 	mlp_err_rate = []
 	knn_err_rate = []
+	nn_err_rate = []
 	for i in range(K_FOLD_SET_SIZE):
-		print i, "th Set of K-Fold Cross Validation\n\n"
+		print i, "th Set of K-Fold Cross Validation\n"
 		# Training part -- NeuralNetwork with TensorFlow
 		#	- Settings for NeuralNetwork
 		#	- check NeuralNetwork CheckPoint
@@ -95,16 +96,34 @@ def main():
 		knn_err_rate.append(np.mean(np.absolute(result_y-test_y) / test_y))
 		print "Error Rate : ", knn_err_rate[-1]*100.0, " %"
 
-		print "\n\n"
+		# Training part -- Custom NN
+		print "Training NN - Custom..."
 
-		#My Own NN
+		batches_x, batches_y, test_x, test_y = loader.getMinMaxData(isminibatch=True,mbSize=MB_SIZE)
 
+		print "Training Network..."
 
+		curr_cost=0
+		for i in range(0, EPOCHS):
+			#print "ITER : ", i ,", COST : ", curr_cost
+			for tr_x, tr_y in zip(batches_x, batches_y):
+				curr_cost = myOwnNN.train(tr_x, tr_y.reshape((len(tr_y), 1)))
+
+		print "Training Complete!"
+
+		print "Testing NN - Custom..."
+		result_y = myNN.test(test_x)
+		result_y = loader.restoreMinMaxSalePrice(result_y)
+		nn_err_rate.append(np.mean(np.absolute(result_y-test_y)/test_y))
+		print "Error Rate : ", nn_err_rate[-1]*100.0, " %"
+
+		print "\n==============================\n"
 
 		#batches_x, batches_y, test_x, test_y = loader.getMinMaxData(isminibatch=True,mbSize=MB_SIZE)
 
-	print "Neural Network Error Rate : ", np.mean(mlp_err_rate) * 100.0 , " %"
+	print "TensorFlow Neural Network Error Rate : ", np.mean(mlp_err_rate) * 100.0 , " %"
 	print "PCA + KNN Error Rate : ", np.mean(knn_err_rate) * 100.0, " %"
+	print "Custom Neural Network Error Rate : ", np.mean(nn_err_rate) * 100.0, " %"
 
 
 if __name__=="__main__":
