@@ -88,7 +88,7 @@ class BHLoader:
 		# In[8]:
 
 		# data normalization 
-		tr_y = np.log1p(tr_y)
+		'''tr_y = np.log1p(tr_y)
 
 		numeric_feats = tr_x.dtypes[tr_x.dtypes != "object"].index
 
@@ -97,7 +97,7 @@ class BHLoader:
 		skewed_feats = skewed_feats.index
 
 		tr_x[skewed_feats] = np.log1p(tr_x[skewed_feats])
-
+		'''
 
 		# In[9]:
 

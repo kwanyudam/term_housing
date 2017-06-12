@@ -41,6 +41,6 @@ class PCAKNN:
 
 		train_result = np.array(train_result)
 		#print train_result, resultY
-		print "Error Rate : ", np.mean((train_result-resultY) / resultY) * 100.0, " %"
+		print "Error Rate : ", np.mean(np.absolute(train_result-resultY) / resultY) * 100.0, " %"
 
 		#return resultY
