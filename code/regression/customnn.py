@@ -21,6 +21,9 @@ class CustomNeuralNetwork:
 
 		self.lr = learning_rate
 
+	def init(self):
+		self.w = [xavier_initialization(self.network_arch[i], self.network_arch[i+1]) for i in range(0, self.depth-1)]		
+
 	def train(self, train_x, train_y):
 		cost=0
 		weight_update=[np.full((self.network_arch[i], self.network_arch[i+1]), 0, dtype=float) for i in range(0, self.depth-1)]
@@ -59,11 +62,10 @@ class CustomNeuralNetwork:
 	def test(self, test_x):
 		z = []
 		for x in test_x:
-			#Feed Forward
-			layers=[self.x]
+			layers=[x]
 			for l in range(0, self.depth-2):
 				# Go Through Fully_Connected Network
-				layers.append(c_relu(np.matmul(layers[-1], w[l])))
+				layers.append(c_relu(np.matmul(layers[-1], self.w[l])))
 
-			z.append(np.matmul(layers[-1], w[l]))
+			z.append(np.matmul(layers[-1], self.w[-1]))
 		return z

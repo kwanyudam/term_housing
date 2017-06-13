@@ -7,22 +7,23 @@ from nn import NeuralNetwork
 from customnn import CustomNeuralNetwork
 from pcaknn import PCAKNN
 
+import warnings
+warnings.filterwarnings("ignore")
+
 IS_OVERWRITE = True
 TEST_EXISTS = False
 
-#TRAINING_DATA_PATH_X = 'data/Preprocessed_X_train.csv'
-#TRAINING_DATA_PATH_Y = 'data/Preprocessed_Y_train.csv'
+DATA_PATH = '../../data/ml_project_train.csv'
+TEST_PATH = '../../data/ml_project_test.csv'
 
-DATA_PATH = '../data/ml_project_train.csv'
-TEST_PATH = '../data/ml_project_test.csv'
-
-CKPT_PATH = '../ckpt/nn.ckpt'
+CKPT_PATH = '../../ckpt/nn.ckpt'
+#EPOCHS>1000 Recommended...
 TF_EPOCHS = 1000
 NN_EPOCHS = 500
-#EPOCHS 1000 Recommended...
+
 MB_SIZE = 100
 
-K_FOLD_SET_SIZE = 10
+K_FOLD_SET_SIZE = 11
 
 def main():
 	global TEST_EXISTS
@@ -45,7 +46,7 @@ def main():
 		loader = AmesLoader(DATA_PATH)
 
 
-	network_arch=[235, 128, 64, 32, 1]
+	network_arch=[235, 128, 64, 32, 2]
 	learning_rate = 0.1
 	rectifier = 'relu'
 
@@ -57,15 +58,17 @@ def main():
 		learning_rate = learning_rate,
 		rectifier=rectifier)
 
-	mlp_err_rate = []
-	knn_err_rate = []
-	nn_err_rate = []
+	tbSize = loader.getTestBatchSize()
+
+	mlp_err_rate = np.full((tbSize, 1), 0)
+	knn_err_rate = np.full((tbSize, 1), 0)
+	nn_err_rate = np.full((tbSize, 1), 0)
+	#Cross Validation
 	for i in range(K_FOLD_SET_SIZE):
 		print "==", i+1, "th Set of K-Fold Cross Validation======="
 		# Training part -- NeuralNetwork with TensorFlow
 		#	- Settings for NeuralNetwork
 		#	- check NeuralNetwork CheckPoint
-		#		!!!Need Fixing...(Date, Settings should be updated)
 		#	- train Neural Network
 		print "\nNN with Tensorflow..."
 
@@ -80,9 +83,8 @@ def main():
 			curr_cost=0
 			myNN.init()
 			for i in range(0, TF_EPOCHS):
-				#print "ITER : ", i ,", COST : ", curr_cost
 				for tr_x, tr_y in zip(batches_x, batches_y):
-					curr_cost = myNN.train(tr_x, tr_y.reshape((len(tr_y), 1)))
+					curr_cost = myNN.train(tr_x, tr_y.reshape((len(tr_y), 2)))
 
 			print "\tTraining Complete!"
 			myNN.save(CKPT_PATH)
@@ -91,9 +93,20 @@ def main():
 		# Testing part -- NeuralNetwork with TensorFlow
 		print "\tTesting NN with Tensorflow..."
 		result_y = myNN.test(test_x)
-		result_y = loader.restoreMinMaxSalePrice(result_y)
-		mlp_err_rate.append(np.mean(np.absolute(result_y-test_y)/test_y))
-		print "\tError Rate : ", mlp_err_rate[-1]  * 100.0, " %"
+		#result_y = loader.restoreMinMaxSalePrice(result_y)
+		count =0
+
+		for i in range(0, result_y.shape[0]):
+			if result_y[i][0]>result_y[i][1]:
+				if test_y[i][0]==1:
+					count+=1
+			elif test_y[i][1]==1:
+				mlp_err_rate[i]+=1
+				count+=1
+
+		print "\tError Rate : ", 100.0 * (result_y.shape[0] - count) / result_y.shape[0], " %"
+		#mlp_err_rate.append(np.mean(np.absolute(result_y-test_y)/test_y))
+		#print "\tError Rate : ", mlp_err_rate[-1]  * 100.0, " %"
 
 
 		# Training part -- PCA + KNN
@@ -107,8 +120,18 @@ def main():
 		# Testing part -- PCA + KNN
 		print "\tTesting PCA + KNN"
 		result_y = myKNN.test(test_x)
-		knn_err_rate.append(np.mean(np.absolute(result_y-test_y) / test_y))
-		print "\tError Rate : ", knn_err_rate[-1]*100.0, " %"
+
+		count=0
+
+		for i in range(0, result_y.shape[0]):
+			if result_y[i][0]>result_y[i][1]:
+				if test_y[i]<160000:
+					count+=1
+			elif test_y[i]>=160000:
+				knn_err_rate[i]+=1
+				count+=1
+		#knn_err_rate.append(np.mean(np.absolute(result_y-test_y) / test_y))
+		print "\tError Rate : ", 100.0 * (result_y.shape[0] - count) / result_y.shape[0], " %"
 
 		# Training part -- Custom NN
 		print "\nNeural Network - Custom..."
@@ -121,23 +144,53 @@ def main():
 		for i in range(0, NN_EPOCHS):
 			#print "ITER : ", i ,", COST : ", curr_cost
 			for tr_x, tr_y in zip(batches_x, batches_y):
-				curr_cost = myOwnNN.train(tr_x, tr_y.reshape((len(tr_y), 1)))
+				curr_cost = myOwnNN.train(tr_x, tr_y.reshape((len(tr_y), 2)))
 
 		print "\tTraining Complete!"
 
+		# Testing part -- Custom NN
 		print "\tTesting NN - Custom..."
 		result_y = myNN.test(test_x)
-		result_y = loader.restoreMinMaxSalePrice(result_y)
-		nn_err_rate.append(np.mean(np.absolute(result_y-test_y)/test_y))
-		print "\tError Rate : ", nn_err_rate[-1]*100.0, " %"
+		#result_y = loader.restoreMinMaxSalePrice(result_y)
+
+		count=0
+		for i in range(0, len(result_y)):
+			if result_y[i][0]>result_y[i][1]:
+				if test_y[i][0]==1:
+					count+=1
+			elif test_y[i][1]==1:
+				nn_err_rate[i]+=1
+				count+=1
+		print "\tError Rate : ", 100.0 * (len(result_y) - count) / len(result_y), " %"
 
 		print "\n==========================================\n"
 
-		#batches_x, batches_y, test_x, test_y = loader.getMinMaxData(isminibatch=True,mbSize=MB_SIZE)
+	if TEST_EXISTS:
+		test_y = loader.getTestY()
+		tN = len(test_y)
+		count=0
+		for i, j in zip(mlp_err_rate, test_y):
+			if i<K_FOLD_SET_SIZE/2.0 and j<160000:
+				count+=1
+			elif i>K_FOLD_SET_SIZE/2.0 and j>=160000:
+				count+=1
+		print "TensorFlow Neural Network Error Rate : ", 100.0* (tN - count) / tN, " %"
 
-	print "TensorFlow Neural Network Error Rate : ", np.mean(mlp_err_rate) * 100.0 , " %"
-	print "PCA + KNN Error Rate : ", np.mean(knn_err_rate) * 100.0, " %"
-	print "Custom Neural Network Error Rate : ", np.mean(nn_err_rate) * 100.0, " %"
+		count=0
+		for i, j in zip(knn_err_rate, test_y):
+			if i<K_FOLD_SET_SIZE/2.0 and j<160000:
+				count+=1
+			elif i>K_FOLD_SET_SIZE/2.0 and j>=160000:
+				count+=1
+		print "PCA + KNN Error Rate : ", 100.0* (tN - count) / tN, " %"
+
+		count=0
+		for i, j in zip(nn_err_rate, test_y):
+			if i<K_FOLD_SET_SIZE/2.0 and j<160000:
+				count+=1
+			elif i>K_FOLD_SET_SIZE/2.0 and j>=160000:
+				count+=1
+		print "Custom Neural Network Error Rate : ", 100.0* (tN - count) / tN, " %"
 
 
 if __name__=="__main__":
