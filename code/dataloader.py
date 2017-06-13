@@ -14,7 +14,8 @@ class AmesLoader:
 	def __init__(self, filepath, testpath=None, isTest=False):
 		self.dataX, self.dataY = self.loadRawData(filepath)
 
-		self.testX, self.testY = self.loadRawData(testpath)
+		if isTest:
+			self.testX, self.testY = self.loadRawData(testpath)
 
 		self.isTest = isTest
 
@@ -59,7 +60,7 @@ class AmesLoader:
 
 	def getMinMaxData(self, isminibatch=True, mbSize=100):
 		trainX, testX, trainY, testY = train_test_split(self.dataX, self.dataY, test_size=0.2, random_state=random.randint(0, 50))
-		if isTest:			
+		if self.isTest:			
 			testX = self.testX
 			testY = self.testY
 
@@ -100,7 +101,7 @@ class AmesLoader:
 
 	def getNormalizedData(self, cross_val=False, isminibatch=False, mbSize=100, normalizeY=False):
 		trainX, testX, trainY, testY = train_test_split(self.dataX, self.dataY, test_size=0.2, random_state=random.randint(0, 50))
-		if isTest:			
+		if self.isTest:			
 			testX = self.testX
 			testY = self.testY
 

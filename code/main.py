@@ -37,19 +37,19 @@ def main():
 		return
 	
 	if os.path.isfile(TEST_PATH):
+		print "Test Data Exists!!"
 		loader = AmesLoader(DATA_PATH, TEST_PATH, True)
 		TEST_EXISTS=True
 	else:
+		print "No Test Data : Cross Validation"
 		loader = AmesLoader(DATA_PATH)
 
 
 	network_arch=[235, 128, 64, 32, 1]
-	dropout_keep_prob = 0.9
 	learning_rate = 0.1
 	rectifier = 'relu'
 
 	myNN = NeuralNetwork(network_arch, 
-		drop_keep=dropout_keep_prob,
 		learning_rate=learning_rate, 
 		rectifier=rectifier)
 
@@ -61,7 +61,7 @@ def main():
 	knn_err_rate = []
 	nn_err_rate = []
 	for i in range(K_FOLD_SET_SIZE):
-		print "==", i, "th Set of K-Fold Cross Validation======="
+		print "==", i+1, "th Set of K-Fold Cross Validation======="
 		# Training part -- NeuralNetwork with TensorFlow
 		#	- Settings for NeuralNetwork
 		#	- check NeuralNetwork CheckPoint
