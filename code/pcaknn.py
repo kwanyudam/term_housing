@@ -14,8 +14,8 @@ class PCAKNN:
 		self.newX = self.pca.transform(X)
 		self.result = Y
 
-		print "PCA EigenValues Ratio :",
-		print self.pca.explained_variance_ratio_
+		#print "PCA EigenValues Ratio :",
+		#print self.pca.explained_variance_ratio_
 
 
 		#This part is for analyzing vector dependency
@@ -45,7 +45,7 @@ class PCAKNN:
 		print "==========="
 		'''
 			
-		print "PCA Data Loss : ",
+		print "\tPCA Data Loss : ",
 		print 100 *(1.0 - np.sum(self.pca.explained_variance_ratio_)) , "%"
 
 		return

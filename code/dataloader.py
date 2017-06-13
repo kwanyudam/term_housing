@@ -5,17 +5,18 @@ from itertools import chain
 from sklearn import preprocessing
 from sklearn.model_selection import train_test_split
 from scipy.stats import skew
-from bhloader import BHLoader
 
 import metadata
 
 import random
 
 class AmesLoader:
-	def __init__(self, filepath):
+	def __init__(self, filepath, testpath=None, isTest=False):
 		self.dataX, self.dataY = self.loadRawData(filepath)
 
-		#print self.dataY
+		self.testX, self.testY = self.loadRawData(testpath)
+
+		self.isTest = isTest
 
 		return 
 
@@ -58,6 +59,9 @@ class AmesLoader:
 
 	def getMinMaxData(self, isminibatch=True, mbSize=100):
 		trainX, testX, trainY, testY = train_test_split(self.dataX, self.dataY, test_size=0.2, random_state=random.randint(0, 50))
+		if isTest:			
+			testX = self.testX
+			testY = self.testY
 
 		trainY = trainY.reshape((len(trainY), 1))
 		testY = testY.reshape((len(testY), 1))
@@ -96,6 +100,9 @@ class AmesLoader:
 
 	def getNormalizedData(self, cross_val=False, isminibatch=False, mbSize=100, normalizeY=False):
 		trainX, testX, trainY, testY = train_test_split(self.dataX, self.dataY, test_size=0.2, random_state=random.randint(0, 50))
+		if isTest:			
+			testX = self.testX
+			testY = self.testY
 
 		trainX = np.array(trainX)
 		trainY = np.array(trainY)

@@ -46,11 +46,10 @@ class NeuralNetwork:
 		elif optimizer=='adam':
 			self.optimizer = tf.train.AdamOptimizer(learning_rate=self.lr).minimize(self.cost, global_step=self.global_step)
 
-
+		self.saver = tf.train.Saver()
+	def init(self):
 		init = tf.initialize_all_variables()
 		self.sess.run(init)
-
-		self.saver = tf.train.Saver()
 
 	def train(self, train_x, train_y):
 		z, loss, opt, cost = self.sess.run((self.z, self.loss, self.optimizer, self.cost),
